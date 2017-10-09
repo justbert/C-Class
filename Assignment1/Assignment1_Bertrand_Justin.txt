@@ -1,0 +1,92 @@
+/******************************************************************************
+
+	PURPOSE: Decides if an elevator should go UP, DOWN, or STOP moving.
+   
+   HISTORY: Created by Justin Bertrand, February 1st, 2015
+   
+   INPUTS: Integers as floor numbers, and arrays of integers as a representation
+            where the index is the floor number and the values are non-zero if
+            a request has been made for a stop on that floor.
+            
+   OUTPUTS: Outputs 1 to GO() if the elevator moves up, a -1 to Go() if the
+            elevator goes down, and 0 to Go() if the elevator stops.
+            
+   ALGORITHM: See pseudocode.
+   
+   NOTES: This is just the driving loop of the program which performs the logic.
+
+*******************************************************************************/
+
+travelTo[FLOORS]
+travelling <- STOP
+currentFloor <- BASEMENT
+buttonPress <- -1
+
+WHILE(POWERGOOD)
+
+	buttonPress <- buttonPressedInside()
+	
+	IF(buttonPress != -1)
+		travelTo[buttonPress] <- 1
+      buttonPress <- -1
+	ENDIF
+	
+   //Checks to see if the currentFloor is a stop
+	IF(travelTo[currentFloor])
+		openDoorCloseDoor()
+		travelling = STOP;
+		travelTo[currentFloor] <- 0
+   
+   ELSE IF(currentFloor = BASEMENT AND travelling = DOWN) 
+      travelling = STOP;
+      
+   //If travelling up or at the basement, checks if more buttons have
+   //been pressed
+	ELSE IF(travelling = UP OR (currentFloor = BASEMENT)) 
+		temp[] <- buttonPressedGoingUp()	
+		FOR(index <- currentFloor; index < FLOORS; ++index)
+			IF(temp[index])
+				travelTo[index] <- temp[index]
+			ENDIF
+			IF(travelTo[index] AND index > currentFloor)
+				travelling <- UP
+			ENDIF
+		ENDFOR
+	
+   //If travelling down or at the top floor, checks to see if more 
+   // buttons have been pressed down
+	ELSE IF (travelling = DOWN OR currentFloor = FLOORS-1)
+		temp[] <- buttonPressedGoingDown()	
+		
+      FOR(index <- currentFloor; index >= BASEMENT; --index)
+			
+         IF(temp[index])
+				travelTo[index] <- temp[index]
+			ENDIF
+         
+			IF(travelTo[index] AND index < currentFloor)
+				travelling <- DOWN
+			ENDIF
+		ENDFOR
+		   
+	ELSE 
+		FOR(index <- 0; index < FLOORS; ++index)
+			
+         IF(travelTo[index] AND index > currentFloor)
+				travelling = UP
+			
+         ELSE IF(travelTo[index] AND index < currentFloor)
+				travelling = DOWN
+			
+         ELSE IF(index = FLOORS-1 AND currentFloor != BASEMENT)
+				travelling = DOWN
+			
+         ELSE
+				travelling <- STOP
+			ENDIF
+		ENDFOR
+	ENDIF
+	
+	currentFloor <- Go(travelling)
+
+ENDWHILE
